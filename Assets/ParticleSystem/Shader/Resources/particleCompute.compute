@@ -1,0 +1,200 @@
+﻿//
+// Copyright © Daniel Shervheim, 2019
+// www.danielshervheim.com
+//
+
+#define THREAD_GROUPS 256
+#define EPSILON 0.005
+
+
+
+struct Particle {
+	float3 position;
+	float3 originalPosition;
+	float3 velocity;
+	float3 originalVelocity;
+	float lifetime;
+	float age;
+};
+RWStructuredBuffer<Particle> particleBuffer;
+
+
+
+struct SphereCollider {
+	float3 center;
+	float radius;
+};
+RWStructuredBuffer<SphereCollider> sphereColliderBuffer;
+int sphereColliderCount;
+
+
+
+struct BoxCollider {
+	float3 center, extents;
+};
+RWStructuredBuffer<BoxCollider> boxColliderBuffer;
+int boxColliderCount;
+
+
+
+float percentageAtDeath;
+float coefficientOfRestitution;
+int randomizeCOR;
+float3 gravity;
+float dt;
+
+
+
+/* Random method from:
+http://www.reedbeta.com/blog/quick-and-easy-gpu-random-numbers-in-d3d11/ */
+uint rand_xorshift(uint rng_state) {
+    rng_state ^= (rng_state << 13);
+    rng_state ^= (rng_state >> 17);
+    rng_state ^= (rng_state << 5);
+    return rng_state;
+}
+
+
+
+/* Detects whether a point collided with a sphere. This is NOT a CCD approach, so high velocity particles
+may theoretically pass through smaller spheres. */
+int pointSphereIntersection(float3 p, float3 pPrev, SphereCollider sphere, inout float3 hitPoint, inout float3 hitNormal) {
+	if (length(p-sphere.center) > sphere.radius) return 0;
+
+	hitPoint = sphere.center + normalize((p+pPrev)/2.0-sphere.center)*(sphere.radius+EPSILON);
+	hitNormal = normalize(hitPoint - sphere.center);
+	return 1;
+}
+
+
+
+/* Detects whether a line segment intersects an AABB. This is basically a CCD approach with the
+retracing ommitted (we simply return the hitPoint as the original (pre-collision) position).
+I borrowed bits of implementations from the following websites:
+https://www.gamedev.net/forums/topic/338987-aabb---line-segment-intersection-test/
+https://www.gamedev.net/forums/topic/551816-finding-the-aabb-surface-normal-from-an-intersection-point-on-aabb/ */
+int lineBoxIntersection(float3 p, float3 pPrev, BoxCollider box, inout float3 hitPoint, inout float3 hitNormal) {
+	hitPoint = pPrev;
+	hitNormal = float3(0,0,0);
+
+	float3 d = (p-pPrev)/2.0;
+	float3 e = box.extents;
+	float3 c = (p+d - box.center);
+	float3 ad = abs(d);
+
+	if (abs(c.x) > e.x+ad.x) return 0;
+	if (abs(c.y) > e.y+ad.y) return 0;
+	if (abs(c.z) > e.z+ad.z) return 0;
+
+	if (abs(d.y*c.z-d.z*c.y) > e.y*ad.z+e.z*ad.y) return 0;
+	if (abs(d.z*c.x-d.x*c.z) > e.z*ad.x+e.x*ad.z) return 0;
+	if (abs(d.x*c.y-d.y*c.x) > e.x*ad.y+e.y*ad.x) return 0;
+
+	// calculate hit normal
+	float min = 10000.0;
+	
+	float3 newP = pPrev - box.center;
+
+	float distance = abs(box.extents.x - abs(newP.x));
+	if (distance < min) {
+		min = distance;
+		hitNormal = sign(newP.x)*float3(1,0,0);
+	}
+
+	distance = abs(box.extents.y - abs(newP.y));
+	if (distance < min) {
+		min = distance;
+		hitNormal = sign(newP.y)*float3(0,1,0);
+	}
+
+	distance = abs(box.extents.z - abs(newP.z));
+	if (distance < min) {
+		min = distance;
+		hitNormal = sign(newP.z)*float3(0,0,1);
+	}
+
+	hitNormal = normalize(hitNormal);
+
+	return 1;
+}
+
+
+
+
+float3 reflect(float3 vec, float3 normal) {
+	normal = normalize(normal);
+	return vec - 2.0*dot(vec, normal)*normal;
+}
+
+
+
+void updateParticle(uint i) {
+	particleBuffer[i].velocity += gravity*dt;
+	
+	float percentAgeLeft = 1.0 - saturate(particleBuffer[i].age/particleBuffer[i].lifetime);  // 1:0
+	float scale = saturate(percentAgeLeft*(1.0-percentageAtDeath) + percentageAtDeath);
+
+	particleBuffer[i].position += scale*(particleBuffer[i].velocity*dt);
+}
+
+
+
+void resetParticle(uint i) {
+	particleBuffer[i].velocity = particleBuffer[i].originalVelocity;
+	particleBuffer[i].position = particleBuffer[i].originalPosition;
+	particleBuffer[i].age = 0;
+}
+
+
+
+#pragma kernel CSMain
+[numthreads(THREAD_GROUPS,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID) {
+
+	// Increment the particles age by the frame time.
+	particleBuffer[id.x].age += dt;
+
+	// If the particle has been "born", start moving it.
+	if (particleBuffer[id.x].age >= 0) {
+		float3 oldPos = particleBuffer[id.x].position;
+		updateParticle(id.x);
+
+		// recalculate COR to factor in randomization
+		float corScale = 1.0;
+		if (randomizeCOR == 1) {
+			uint seed = id.x;
+	    	corScale = float(rand_xorshift(seed)) * (1.0 / 4294967296.0);  // 0-1
+		}	    
+	
+		// sphere collider collision check
+		for (int s = 0; s < sphereColliderCount; s++) {
+			float3 hitPoint, hitNormal;
+			if (pointSphereIntersection(particleBuffer[id.x].position, oldPos, sphereColliderBuffer[s], hitPoint, hitNormal) == 1) {
+				particleBuffer[id.x].position = hitPoint;
+				float3 r = reflect(particleBuffer[id.x].velocity, normalize(hitNormal));
+				particleBuffer[id.x].velocity = saturate(coefficientOfRestitution*corScale)*r;
+			}
+		}
+
+		// box collider collision check
+		for (int b = 0; b < boxColliderCount; b++) {
+			float3 hitPoint, hitNormal;
+			if (lineBoxIntersection(particleBuffer[id.x].position, oldPos, boxColliderBuffer[b], hitPoint, hitNormal) == 1) {
+				particleBuffer[id.x].position = hitPoint;
+				float3 r = reflect(particleBuffer[id.x].velocity, normalize(hitNormal));
+				particleBuffer[id.x].velocity = saturate(coefficientOfRestitution*corScale)*r;
+			}
+		}
+
+		// ground collision check
+		if (particleBuffer[id.x].position.y < 0) {
+			particleBuffer[id.x].position.y = EPSILON;
+			particleBuffer[id.x].velocity.y *= -saturate(coefficientOfRestitution * corScale);
+		}
+
+		// If the particle has "died", reset it to be "born" again.
+		if (particleBuffer[id.x].age > particleBuffer[id.x].lifetime) {
+			resetParticle(id.x);
+		}
+	}
+}
