@@ -33,6 +33,6 @@ public class Mover : MonoBehaviour {
 		pitch -= Input.GetAxis("Mouse Y") * lookSpeed;
 		yaw += Input.GetAxis("Mouse X") * lookSpeed;
 
-		transform.rotation = Quaternion.Euler(pitch, yaw, 0f);
+		transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(pitch, yaw, 0f), Time.deltaTime*10f);
 	}
 }

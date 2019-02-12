@@ -85,6 +85,8 @@ public class Emitter : MonoBehaviour {
 	public SphereCollider[] sphereColliders;
 	private ComputeBuffer sphereColliderBuffer;
 
+	public bool updateEachFrame = false;
+
 	// Box Colliders
 	[System.Serializable]
 	public struct BoxCollider {
@@ -174,6 +176,25 @@ public class Emitter : MonoBehaviour {
 
 	public void Update () {
 		if (argsBuffer != null && particleBuffer != null) {
+			if (updateEachFrame) {
+				if (sphereColliders.Length > 0) {
+					sphereColliderBuffer.Release();
+					sphereColliderBuffer = new ComputeBuffer(sphereColliders.Length, SPHERE_COLLIDER_SIZE);
+					sphereColliderBuffer.SetData(sphereColliders);
+					compute.SetBuffer(computeKernel, "sphereColliderBuffer", sphereColliderBuffer);
+					compute.SetInt("sphereColliderCount", sphereColliders.Length);
+				}
+
+				// create the box collider array, load it into the buffer and upload it to the GPU
+				if (boxColliders.Length > 0) {
+					boxColliderBuffer.Release();
+					boxColliderBuffer = new ComputeBuffer(boxColliders.Length, BOX_COLLIDER_SIZE);
+					boxColliderBuffer.SetData(boxColliders);
+					compute.SetBuffer(computeKernel, "boxColliderBuffer", boxColliderBuffer);
+					compute.SetInt("boxColliderCount", boxColliders.Length);
+				}
+			}
+
 			// update simulation parameters
 			compute.SetFloat("percentageAtDeath", percentageAtDeath);
 			compute.SetFloat("coefficientOfRestitution", coefficientOfRestitution);

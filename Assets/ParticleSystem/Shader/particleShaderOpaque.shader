@@ -3,7 +3,7 @@
 // www.danielshervheim.com
 //
 
-Shader "Custom/particleShader" {
+Shader "Custom/particleShaderOpaque" {
 	Properties {
 		// these are all set in Emitter.cs
 		_AlbedoBirth ("Albedo (birth)", Color) = (0,0,0,1)
@@ -23,10 +23,6 @@ Shader "Custom/particleShader" {
 		_SizeBirth ("Size (birth)", float) = 1.0
 		_SizeDeath ("Size (death)", float) = 0.0
 
-		_AlphaBirth ("Alpha (birth)", float) = 1.0
-		_AlphaDeath ("Alpha (death)", float) = 0.0
-		_AlphaTexture ("Alpha (texture)", 2D) = "white" {}
-
 		_Smoothness ("Smoothness", Range(0,1)) = 0.5
 		_Metallic ("Metallic", Range(0,1)) = 0.0
 
@@ -34,21 +30,19 @@ Shader "Custom/particleShader" {
 		_FollowVelocity ("Follow Velocity", Range(0, 1)) = 0
 	}
 	SubShader {
-		Tags { "Queue" = "Transparent" "IgnoreProjector" = "True" "RenderType"="Transparent" }
+		Tags { "RenderType"="Opaque" }
 		LOD 200
 
 		/* We must prevent culling or else the shadow calculations aren't done for 
 		when the quads are not technically "facing" us, even though they are via
 		vertex rotation. */
 		Cull Off
-		ZWrite On
-       	Blend SrcAlpha OneMinusSrcAlpha
 
 		CGPROGRAM
 
 		/* vertex:vert specifices a custom vertex function, and addshadow forces
 		shadow recalculations so particles correctly shadow, and are shaded. */
-		#pragma surface surf Standard vertex:vert nolightmap alpha:fade addshadow
+		#pragma surface surf Standard vertex:vert nolightmap addshadow
 		
 		/* Enables instancing support for this shader. */
 		#pragma instancing_options procedural:setup assumeuniformscaling
@@ -68,10 +62,6 @@ Shader "Custom/particleShader" {
 
 		float _SizeBirth;
 		float _SizeDeath;
-
-		float _AlphaBirth;
-		float _AlphaDeath;
-		sampler2D _AlphaTexture;
 
 		half _Smoothness;
 		half _Metallic;
@@ -129,7 +119,7 @@ Shader "Custom/particleShader" {
        		v.vertex.xyz = positionRotated*size + particleBuffer[unity_InstanceID].position;
 
        		// rotate the normal to match the rotated point.
-		  	// v.normal = rotateVector(v.normal, quat);
+		  	v.normal = rotateVector(v.normal, quat);
 			// v.normal = float3(0, 1, 0);
 			#endif
 		}
@@ -141,7 +131,6 @@ Shader "Custom/particleShader" {
 			float t = saturate(IN.age/IN.lifetime);
 			o.Albedo = tex2D(_AlbedoTexture, IN.uv_AlbedoTexture) * lerp(_AlbedoBirth, _AlbedoDeath, t);
 			o.Emission = tex2D(_EmissionTexture, IN.uv_EmissionTexture) * lerp(_EmissionBirth, _EmissionDeath, t);
-			o.Alpha = tex2D(_AlphaTexture, IN.uv_AlphaTexture) * lerp(_AlphaBirth, _AlphaDeath, t);
 			o.Normal = tex2D(_NormalTexture, IN.uv_NormalTexture);
 			o.Metallic = _Metallic;
 			o.Smoothness = _Smoothness;

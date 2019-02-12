@@ -118,6 +118,8 @@ public class EmitterEditor : Editor {
             msg += " Collider rotation is currently not supported.";
             EditorGUILayout.HelpBox(msg, MessageType.Warning);
 
+            emitter.updateEachFrame = EditorGUILayout.Toggle("Update Colliders in Real-time", emitter.updateEachFrame);
+
         	serializedObject.ApplyModifiedProperties();
         }
     }

@@ -1179,6 +1179,107 @@ SphereCollider:
   serializedVersion: 2
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &266686926
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 266686931}
+  - component: {fileID: 266686930}
+  - component: {fileID: 266686929}
+  - component: {fileID: 266686928}
+  - component: {fileID: 266686927}
+  m_Layer: 0
+  m_Name: Sphere
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &266686927
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 266686926}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f05a64e362c8e844aa078e138a00853, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  emitters:
+  - {fileID: 1276628369}
+  - {fileID: 1069547079}
+  - {fileID: 727632243}
+  camera: {fileID: 1125662084}
+--- !u!23 &266686928
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 266686926}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_Materials:
+  - {fileID: 2100000, guid: 388cf1c6158ee0e4d9f335a3eb99d596, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_PreserveUVs: 1
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 0
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+--- !u!135 &266686929
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 266686926}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!33 &266686930
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 266686926}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &266686931
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 266686926}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2.72, y: 3.04, z: -2.99}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 7
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &274926320
 GameObject:
   m_ObjectHideFlags: 0
@@ -2435,7 +2536,10 @@ MonoBehaviour:
   coefficientOfRestitution: 0.7
   randomizeCOR: 0
   gravity: {x: 0, y: -9.8, z: 0}
-  sphereColliders: []
+  sphereColliders:
+  - center: {x: 0, y: 0, z: 0}
+    radius: 0
+  updateEachFrame: 1
   boxColliders:
   - center: {x: 0, y: 1, z: 2.75}
     extents: {x: 3, y: 1, z: 0.25}
@@ -3700,7 +3804,10 @@ MonoBehaviour:
   coefficientOfRestitution: 0.75
   randomizeCOR: 1
   gravity: {x: 0, y: -9.8, z: 0}
-  sphereColliders: []
+  sphereColliders:
+  - center: {x: 0, y: 0, z: 0}
+    radius: 0
+  updateEachFrame: 1
   boxColliders:
   - center: {x: 0, y: 1, z: 2.75}
     extents: {x: 3, y: 1, z: 0.25}
@@ -4116,7 +4223,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 5
-  lookSpeed: 5
+  lookSpeed: 2
 --- !u!1001 &1131668871
 Prefab:
   m_ObjectHideFlags: 0
@@ -5156,6 +5263,9 @@ MonoBehaviour:
     radius: 0.10000004
   - center: {x: -0.01834175, y: 4.18, z: -0.018088013}
     radius: 0.10000004
+  - center: {x: -0.01834175, y: 4.18, z: -0.018088013}
+    radius: 0.10000004
+  updateEachFrame: 1
   boxColliders:
   - center: {x: 0, y: 1, z: 2.75}
     extents: {x: 3, y: 1, z: 0.25}
