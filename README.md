@@ -1,10 +1,31 @@
 # Particle System in Unity
 
-A GPU accelerated particle system for Unity.
+A GPU accelerated particle system I made for a class assignment.
 
-![fire screenshot](https://static1.squarespace.com/static/5c564bdaa568272acbddb4ee/5c61b755e4966b1721959189/5c61b75a71c10b36d75174f5/1549907807025/firepic.png)
+![Fire](https://imgur.com/GJEple9.png)
 
-![water screenshot](https://static1.squarespace.com/static/5c564bdaa568272acbddb4ee/5c61b755e4966b1721959189/5c61b75ae79c7032190072af/1549907805775/water1.png)
+![Water](https://imgur.com/yqEsD54.png)
+
+Watch it on [Youtube](https://www.youtube.com/playlist?list=PLI8z64x91TSuIT6wMehc56uLu8R5vshfJ).
+
+### About
+
+Supports the following features:
+
+- Custom emitter shapes (rectangle, circle, sphere, and cone).
+- Custom spawn rate (X particles per Y seconds).
+- Change in appearance over time (albedo, emission, size, transparency, and speed).
+- Real-time gravity vector (can be used to simulate wind).
+- Real-time coefficient of restitution (also includes a randomize factor to help hide the perfect “steppes” that arise when every particle has the same COR).
+- Static and dynamic box and sphere colliders.
+
+The particle system is initialized on the CPU. I calculate starting positions and velocities for each particle, then upload them to the GPU in buffers where a Compute shader advances the simulation each frame. Each particle is rendered as a quad via GPU instancing and a custom shader.
+
+Because each particle lives on the GPU, my system spawns the maximum number of particles initially. Every particle starts with a “spawn timer” which ticks down. The particle will not appear until the timer has run out. Once a particle dies, it returns to its original position and velocity. This gives the appearance of spawning particles over time, while removing the need for costly CPU-GPU communication every frame to instantiate and destroy particles. 
+
+Sphere and box colliders are also uploaded to the GPU (each frame, at a slightly increased computational cost, or on initialization). This enables the particles to react to the environment (this is demonstrated in the fountain demo).
+
+The coefficient of restitution (which controls the particles “bounciness”) and the gravity vector are updated each frame as well. This allows for complex wind-like behavior.
 
 ### Installation
 

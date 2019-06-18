@@ -148,21 +148,21 @@ public class Emitter : MonoBehaviour {
 			sphereColliderBuffer = new ComputeBuffer(sphereColliders.Length, SPHERE_COLLIDER_SIZE);
 			sphereColliderBuffer.SetData(sphereColliders);
 			compute.SetBuffer(computeKernel, "sphereColliderBuffer", sphereColliderBuffer);
-			compute.SetInt("sphereColliderCount", sphereColliders.Length);
 		}
+        compute.SetInt("sphereColliderCount", sphereColliders.Length);
 
 
 
-		// create the box collider array, load it into the buffer and upload it to the GPU
-		if (boxColliders.Length > 0) {
+        // create the box collider array, load it into the buffer and upload it to the GPU
+        if (boxColliders.Length > 0) {
 			boxColliderBuffer = new ComputeBuffer(boxColliders.Length, BOX_COLLIDER_SIZE);
 			boxColliderBuffer.SetData(boxColliders);
 			compute.SetBuffer(computeKernel, "boxColliderBuffer", boxColliderBuffer);
-			compute.SetInt("boxColliderCount", boxColliders.Length);
-		}
-		
-		// warmup the shaders
-		Shader.WarmupAllShaders();
+        }
+        compute.SetInt("boxColliderCount", boxColliders.Length);
+
+        // warmup the shaders
+        Shader.WarmupAllShaders();
 
 
 		// create the Args array, and load it into the Arguments buffer, and save it for the Update() loop
@@ -182,18 +182,18 @@ public class Emitter : MonoBehaviour {
 					sphereColliderBuffer = new ComputeBuffer(sphereColliders.Length, SPHERE_COLLIDER_SIZE);
 					sphereColliderBuffer.SetData(sphereColliders);
 					compute.SetBuffer(computeKernel, "sphereColliderBuffer", sphereColliderBuffer);
-					compute.SetInt("sphereColliderCount", sphereColliders.Length);
-				}
+                }
+                compute.SetInt("sphereColliderCount", sphereColliders.Length);
 
-				// create the box collider array, load it into the buffer and upload it to the GPU
-				if (boxColliders.Length > 0) {
+                // create the box collider array, load it into the buffer and upload it to the GPU
+                if (boxColliders.Length > 0) {
 					boxColliderBuffer.Release();
 					boxColliderBuffer = new ComputeBuffer(boxColliders.Length, BOX_COLLIDER_SIZE);
 					boxColliderBuffer.SetData(boxColliders);
 					compute.SetBuffer(computeKernel, "boxColliderBuffer", boxColliderBuffer);
-					compute.SetInt("boxColliderCount", boxColliders.Length);
-				}
-			}
+                }
+                compute.SetInt("boxColliderCount", boxColliders.Length);
+            }
 
 			// update simulation parameters
 			compute.SetFloat("percentageAtDeath", percentageAtDeath);

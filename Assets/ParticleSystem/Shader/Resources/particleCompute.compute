@@ -25,7 +25,7 @@ struct SphereCollider {
 	float radius;
 };
 RWStructuredBuffer<SphereCollider> sphereColliderBuffer;
-int sphereColliderCount;
+int sphereColliderCount = 0;
 
 
 
@@ -33,7 +33,7 @@ struct BoxCollider {
 	float3 center, extents;
 };
 RWStructuredBuffer<BoxCollider> boxColliderBuffer;
-int boxColliderCount;
+int boxColliderCount = 0;
 
 
 
@@ -165,26 +165,34 @@ void CSMain (uint3 id : SV_DispatchThreadID) {
 			uint seed = id.x;
 	    	corScale = float(rand_xorshift(seed)) * (1.0 / 4294967296.0);  // 0-1
 		}	    
-	
+		
 		// sphere collider collision check
-		for (int s = 0; s < sphereColliderCount; s++) {
-			float3 hitPoint, hitNormal;
-			if (pointSphereIntersection(particleBuffer[id.x].position, oldPos, sphereColliderBuffer[s], hitPoint, hitNormal) == 1) {
-				particleBuffer[id.x].position = hitPoint;
-				float3 r = reflect(particleBuffer[id.x].velocity, normalize(hitNormal));
-				particleBuffer[id.x].velocity = saturate(coefficientOfRestitution*corScale)*r;
+		if (sphereColliderCount > 0)
+		{
+			for (int s = 0; s < sphereColliderCount; s++) {
+				float3 hitPoint, hitNormal;
+				if (pointSphereIntersection(particleBuffer[id.x].position, oldPos, sphereColliderBuffer[s], hitPoint, hitNormal) == 1) {
+					particleBuffer[id.x].position = hitPoint;
+					float3 r = reflect(particleBuffer[id.x].velocity, normalize(hitNormal));
+					particleBuffer[id.x].velocity = saturate(coefficientOfRestitution*corScale)*r;
+				}
 			}
 		}
 
 		// box collider collision check
-		for (int b = 0; b < boxColliderCount; b++) {
-			float3 hitPoint, hitNormal;
-			if (lineBoxIntersection(particleBuffer[id.x].position, oldPos, boxColliderBuffer[b], hitPoint, hitNormal) == 1) {
-				particleBuffer[id.x].position = hitPoint;
-				float3 r = reflect(particleBuffer[id.x].velocity, normalize(hitNormal));
-				particleBuffer[id.x].velocity = saturate(coefficientOfRestitution*corScale)*r;
+		if (boxColliderCount > 0)
+		{
+			for (int b = 0; b < boxColliderCount; b++) {
+				float3 hitPoint, hitNormal;
+				if (lineBoxIntersection(particleBuffer[id.x].position, oldPos, boxColliderBuffer[b], hitPoint, hitNormal) == 1) {
+					particleBuffer[id.x].position = hitPoint;
+					float3 r = reflect(particleBuffer[id.x].velocity, normalize(hitNormal));
+					particleBuffer[id.x].velocity = saturate(coefficientOfRestitution*corScale)*r;
+				}
 			}
 		}
+		
+		
 
 		// ground collision check
 		if (particleBuffer[id.x].position.y < 0) {
