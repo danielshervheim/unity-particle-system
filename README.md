@@ -1,6 +1,8 @@
 # Particle System
 
-I wrote this particle simulation as a project for an animation and planning course I took in university. Read more about it [here](https://danielshervheim.com/projects/particle-system)
+I wrote this particle simulation as a project for an animation and planning course I took in university.
+
+Read more about it [here](https://danielshervheim.com/projects/particle-system).
 
 ![Fire](https://imgur.com/GJEple9.png)
 
