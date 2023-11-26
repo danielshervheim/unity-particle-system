@@ -4,9 +4,9 @@ I wrote this particle simulation as a project for an animation and planning cour
 
 Read more about it [here](https://danielshervheim.com/coursework/csci-5611/particle-system).
 
-![Fire](https://imgur.com/GJEple9.png)
+![Fire](img/GJEple9.png)
 
-![Water](https://imgur.com/yqEsD54.png)
+![Water](img/yqEsD54.png)
 
 ## Setup
 
